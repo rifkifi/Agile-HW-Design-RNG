@@ -1,0 +1,4 @@
+[0m[[0m[31merror[0m] [0m[0mC:\Users\Rifki\Personal\CollegeWorkspace\AgileHW\ChiselLearning\lfsr\src\main\scala\Emit.scala:29:21: value emitVerilog is not a member of circt.stage.ChiselStage[0m
+[0m[[0m[31merror[0m] [0m[0m  (new ChiselStage).emitVerilog(new LFSR(n, taps, seed), stageArgs)[0m
+[0m[[0m[31merror[0m] [0m[0m                    ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
