@@ -42,10 +42,9 @@ class SHAd256 extends Module {
   val d = Reg(UInt(32.W)); val e = Reg(UInt(32.W)); val f = Reg(UInt(32.W))
   val g = Reg(UInt(32.W)); val h = Reg(UInt(32.W))
   val round = RegInit(0.U(6.W))
+  val firstHash = Reg(UInt(256.W))
 
-  val firstHash = Reg(UInt(256.W))  // stores H after first pass
-
-  val sIdle :: sRun :: sFinalize :: sSecondRun :: sSecondFinalize :: sDone :: Nil = Enum(6)
+  val sIdle :: sRun :: sFinalize :: sSecondSetup :: sSecondRun :: sSecondFinalize :: sDone :: Nil = Enum(7)
   val state = RegInit(sIdle)
 
   io.done := false.B
@@ -137,9 +136,21 @@ class SHAd256 extends Module {
     }
 
     is(sFinalize) {
-      for(i <- 0 until 8) { H(i) := H(i) + Seq(a,b,c,d,e,f,g,h)(i) }
+      firstHash := Cat(
+        H(0) + a,
+        H(1) + b,
+        H(2) + c,
+        H(3) + d,
+        H(4) + e,
+        H(5) + f,
+        H(6) + g,
+        H(7) + h
+      )
+      state := sSecondSetup
+    }
+    is(sSecondSetup) {
       // store the first hash result
-      firstHash := Cat(H(0),H(1),H(2),H(3),H(4),H(5),H(6),H(7))
+
       // prepare padded block for second hash
       val secondInput = Cat(firstHash, "h8000000000000000000000000000000000000000000000000000000000000100".U(256.W))
       for(i <- 0 until 8) { H(i) := Hinit(i) }
@@ -158,8 +169,11 @@ class SHAd256 extends Module {
         Wi := W(round)
       }.otherwise {
         val s0 = (W(round - 15.U).rotateRight(7)) ^ (W(round - 15.U).rotateRight(18)) ^ (W(round - 15.U) >> 3).asUInt
+        printf(p"round=${round}  W(round-15)=${Binary(W(round - 15.U))}\n")
         val s1 = (W(round - 2.U).rotateRight(17)) ^ (W(round - 2.U).rotateRight(19)) ^ (W(round - 2.U) >> 10).asUInt
-        Wi := W(round - 16.U) + s0 + W(round - 7.U) + s1
+        val newW = W(round - 16.U) + s0 + W(round - 7.U) + s1
+        Wi := newW
+        W(round) := newW
       }
 
       // Compute first round
@@ -187,7 +201,9 @@ class SHAd256 extends Module {
       }.otherwise {
         val s0b = (W(nextRound - 15.U).rotateRight(7)) ^ (W(nextRound - 15.U).rotateRight(18)) ^ (W(nextRound - 15.U) >> 3).asUInt
         val s1b = (W(nextRound - 2.U).rotateRight(17)) ^ (W(nextRound - 2.U).rotateRight(19)) ^ (W(nextRound - 2.U) >> 10).asUInt
-        Wi1 := W(nextRound - 16.U) + s0b + W(nextRound - 7.U) + s1b
+        val newW1 = W(nextRound - 16.U) + s0b + W(nextRound - 7.U) + s1b
+        Wi1 := newW1
+        W(nextRound) := newW1
       }
 
       val S1b = ne.rotateRight(6) ^ ne.rotateRight(11) ^ ne.rotateRight(25)
