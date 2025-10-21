@@ -57,8 +57,6 @@ class SHA256 extends Module {
         // Load initial hash
         for(i <- 0 until 8) { H(i) := Hinit(i) }
         // Load input words
-        val test =  io.in(511 , 480)
-        printf(p"W0 = ${Binary(test)}\n")
         for(i <- 0 until 16) { W(i) := io.in(511 - i*32, 480 - i*32) }
         for(i <- 16 until 64) { W(i) := 0.U }
         // Load working vars

@@ -72,7 +72,9 @@ class SHAd256 extends Module {
       }.otherwise {
         val s0 = (W(round - 15.U).rotateRight(7)) ^ (W(round - 15.U).rotateRight(18)) ^ (W(round - 15.U) >> 3).asUInt
         val s1 = (W(round - 2.U).rotateRight(17)) ^ (W(round - 2.U).rotateRight(19)) ^ (W(round - 2.U) >> 10).asUInt
-        Wi := W(round - 16.U) + s0 + W(round - 7.U) + s1
+        val newW = W(round - 16.U) + s0 + W(round - 7.U) + s1
+        Wi := newW
+        W(round) := newW
       }
 
       // Compute first round
@@ -100,7 +102,9 @@ class SHAd256 extends Module {
       }.otherwise {
         val s0b = (W(nextRound - 15.U).rotateRight(7)) ^ (W(nextRound - 15.U).rotateRight(18)) ^ (W(nextRound - 15.U) >> 3).asUInt
         val s1b = (W(nextRound - 2.U).rotateRight(17)) ^ (W(nextRound - 2.U).rotateRight(19)) ^ (W(nextRound - 2.U) >> 10).asUInt
-        Wi1 := W(nextRound - 16.U) + s0b + W(nextRound - 7.U) + s1b
+        val newW1 = W(nextRound - 16.U) + s0b + W(nextRound - 7.U) + s1b
+        Wi1 := newW1
+        W(nextRound) := newW1
       }
 
       val S1b = ne.rotateRight(6) ^ ne.rotateRight(11) ^ ne.rotateRight(25)

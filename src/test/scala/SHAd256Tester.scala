@@ -21,8 +21,9 @@ class SHAd256Tester extends AnyFlatSpec with ChiselScalatestTester {
       val digest = dut.io.out.peek().litValue
       println(f"Digest = 0x$digest%064x")
 
-      //val expected = BigInt("ba7816bf8f01cfea414140de5dae2223" + "b00361a396177a9cb410ff61f20015ad", 16)
-      //assert(digest == expected, "SHA256 digest mismatch!")
+
+      val expected = BigInt("efc26353a4b5b1e1b6bcf1be982db4dd" + "0c845adc7d7fc896db0931aedc1799b5", 16)
+      assert(digest == expected, "SHAd256 digest mismatch!")
     }
   }
 }
