@@ -6,7 +6,7 @@ class SHA256 extends Module {
     val in    = Input(UInt(512.W))   // 512-bit input block
     val start = Input(Bool())
     val done  = Output(Bool())
-    val out   = Output(UInt(256.W))  // 256-bit digest
+    val out   = Output(UInt(256.W))  // 256-bit SHA256 digest
   })
 
   // Initial hash values H0-H7
