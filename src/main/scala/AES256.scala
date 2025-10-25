@@ -2,7 +2,8 @@ import chisel3._
 import chisel3.util._
 
 /*
-   AES256
+   AES256 implementation
+   based on https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf
  */
 
 class AES256 extends Module {
@@ -64,7 +65,6 @@ class AES256 extends Module {
     val bytes = VecInit((0 until 16).map(i => seq(127 - 8*i, 120 - 8*i)))
     VecInit((0 until 4).map(r => VecInit((0 until 4).map(c => bytes(4*c + r)))))
   }
-
   private def matxToSeq(matx: Vec[Vec[UInt]]): UInt = {
     val bytes = (0 until 16).map { i =>
       val c = i / 4
@@ -81,7 +81,6 @@ class AES256 extends Module {
     sbox(word(7, 0))
   )
   private def rconWord(b: UInt): UInt = Cat(rconBytes(b), 0.U(24.W))
-
   private def subBytes(state: Vec[Vec[UInt]]): Vec[Vec[UInt]] = {
     val out = Wire(Vec(4, Vec(4, UInt(8.W))))
     for (c <- 0 until 4; r <- 0 until 4) {
@@ -89,29 +88,26 @@ class AES256 extends Module {
     }
     out
   }
-
   private def addRoundKey(state: Vec[Vec[UInt]], rk: UInt): Vec[Vec[UInt]] = {
     val seqState = matxToSeq(state)
     val out = Wire(Vec(4, Vec(4, UInt(8.W))))
     out := seqToMatx(seqState ^ rk)
     out
   }
-
   private def xtime(x: UInt): UInt = {
-    val x2 = (x << 1)(7,0)                     // keep 8 bits
-    Mux(x(7), x2 ^ "h1b".U(8.W), x2)          // if msb set, reduce
+    val x2 = (x << 1)(7,0)
+    Mux(x(7), x2 ^ "h1b".U(8.W), x2)
   }
   private def mul2(x: UInt): UInt = xtime(x)
   private def mul3(x: UInt): UInt = xtime(x) ^ x
   private def mixSingleColumn(col: Vec[UInt]): Vec[UInt] = {
     val x0 = col(0); val x1 = col(1); val x2 = col(2); val x3 = col(3)
-    val y0 = mul2(x0) ^ mul3(x1) ^ x2        ^ x3
-    val y1 = x0        ^ mul2(x1) ^ mul3(x2) ^ x3
-    val y2 = x0        ^ x1        ^ mul2(x2) ^ mul3(x3)
-    val y3 = mul3(x0)  ^ x1        ^ x2        ^ mul2(x3)
+    val y0 = mul2(x0) ^ mul3(x1) ^ x2 ^ x3
+    val y1 = x0 ^ mul2(x1) ^ mul3(x2) ^ x3
+    val y2 = x0 ^ x1 ^ mul2(x2) ^ mul3(x3)
+    val y3 = mul3(x0) ^ x1 ^ x2 ^ mul2(x3)
     VecInit(Seq(y0, y1, y2, y3))
   }
-
   private def mixColumns(inState: Vec[Vec[UInt]]): Vec[Vec[UInt]] = {
     val out = Wire(Vec(4, Vec(4, UInt(8.W))))
     for (c <- 0 until 4) {
@@ -122,10 +118,8 @@ class AES256 extends Module {
     }
     out
   }
-
   private def rotateRow(row: Vec[UInt], k: Int): Vec[UInt] =
     VecInit((0 until 4).map(i => row((i + k) % 4)))
-
   private def shiftRows(inState: Vec[Vec[UInt]]): Vec[Vec[UInt]] =
     VecInit(
       Seq(
@@ -141,13 +135,12 @@ class AES256 extends Module {
   val round = RegInit(0.U(4.W))
   val roundKey = RegInit(VecInit(Seq.fill(15)(0.U(128.W))))
   val dataState = Reg(Vec(4, Vec(4, UInt(8.W)))) // state(row)(col)
-
   W := VecInit(Seq.fill(60)(0.U(32.W)))
 
   // FSM states
   val sIdle :: sRound0 :: sRoundCore :: sFinalRound :: sDone :: Nil = Enum(5)
   val state = RegInit(sIdle)
-
+  
   io.done := false.B
   io.out := 0.U
 
@@ -174,7 +167,7 @@ class AES256 extends Module {
           roundKey(i) := Cat(W(i * 4), W(i * 4 + 1), W(i * 4 + 2), W(i * 4 + 3))
         }
 
-        // represent data into state matrix 4x4 byte 
+        // map data into state matrix 4x4 byte 
         dataState := seqToMatx(io.in_data)
         
         io.done := false.B
@@ -183,11 +176,13 @@ class AES256 extends Module {
       }
     }
     is(sRound0) {
+      // round 0 process
       dataState := addRoundKey(dataState, roundKey(0))
       round := 1.U
       state := sRoundCore
     }
     is(sRoundCore) {
+      // round 1-14 process consist of subBytes, shiftRows, mixColumns and addRoundKey
       val sb = subBytes(dataState)
       val sr = shiftRows(sb)
       val mix = mixColumns(sr)
@@ -200,6 +195,7 @@ class AES256 extends Module {
       } 
     }
     is(sFinalRound) {
+      // final round process consist of subBytes, shiftRows and addRoundKey
       val rk = roundKey(round)
       val sb = subBytes(dataState)
       val sr = shiftRows(sb)
@@ -207,6 +203,7 @@ class AES256 extends Module {
       state := sDone
     }
     is(sDone) {
+      // convert state matrix to sequence and assign it to output
       io.out := matxToSeq(dataState)
       io.done := true.B
       when(!io.start) { state := sIdle }

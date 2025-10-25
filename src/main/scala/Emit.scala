@@ -26,3 +26,7 @@ object LFSREmit extends App {
   val verilog = chisel3.emitVerilog(new LFSR(n, taps, seed), stageArgs)
   println(s"Verilog emitted to '$targetDir' (top: LFSR.v). Length=${verilog.length}")
 }
+
+object AES256Emit extends App {
+  emitVerilog(new AES256, Array("--target-dir", "generated"))
+}
