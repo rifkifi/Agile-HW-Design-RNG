@@ -65,8 +65,6 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
         println(s"Testing message: '$message'")
         val hardwareHash = hardware.hash(message)
         val modelHash = goldenModel.hash(message)
-        println("Hardware Hash: " + hardwareHash)
-        println("Model Hash:    " + modelHash)
         assert(
           hardwareHash == modelHash,
           s"Mismatch for message '$message': HW=$hardwareHash, Model=$modelHash"

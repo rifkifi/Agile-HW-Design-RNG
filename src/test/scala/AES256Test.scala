@@ -13,6 +13,7 @@ class AES256Test extends AnyFlatSpec with ChiselScalatestTester {
         block == BigInt("6162630d0d0d0d0d0d0d0d0d0d0d0d0d", 16),
         "Padded message does not match expected value"
       )
+      while (!dut.io.ready.peek().litToBoolean) { dut.clock.step(1) }
       dut.io.start.poke(true.B)
       dut.io.in_key.poke(
         "h603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4".U(
@@ -21,12 +22,13 @@ class AES256Test extends AnyFlatSpec with ChiselScalatestTester {
       )
       dut.io.in_data.poke(block.U(128.W))
       dut.clock.step()
-      dut.io.start.poke(false.B)
       while (!dut.io.done.peek().litToBoolean) { dut.clock.step(1) }
       println(f"Output: ${dut.io.out.peek().litValue}%x")
       
       val expected = "hF0E5A0466A99BCFFBAE804580F1E6A73".U
       dut.io.out.expect(expected)
+      dut.clock.step()
+      dut.io.start.poke(false.B)
     }
   }
 }
