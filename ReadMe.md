@@ -63,5 +63,5 @@ Chacha also works on little endian where as chisels Unit works on Big endian. Th
 
 The serves as a top module for the fortuna. The top is modelled as a fsm, the state diagram for the fsm is given below.
 
-![State Diagram](Images\fortuna_State_Machine.svg)
+![State Diagram](Images/fortuna_State_Machine.svg)
 
