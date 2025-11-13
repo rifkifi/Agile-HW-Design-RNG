@@ -8,8 +8,10 @@ Their tests are present under `\src\test\scala\` .
 
 # SALSA20:
 
-The Port List for salsa20 contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project. 
-Salsa work on little endian where as chisels Unit works on Big endian. The output is tested on 3 distant test vectors whose output is calculated and then the algorithm is tested against it.
+The Port List for salsa20 contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project. Salsa work on little endian where as chisels Unit works on Big endian.   
+
+
+The output is tested on 3 distant test vectors whose output is calculated and then the algorithm is tested against it.
 
 
 -**Port List**  
@@ -32,9 +34,9 @@ Salsa work on little endian where as chisels Unit works on Big endian. The outpu
 
 # ChaCha (Bernstien):
 
-The Port List for Chacha contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project. 
+The Port List for Chacha contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project.Chacha also works on little endian where as chisels Unit works on Big endian.  
 
-Chacha also works on little endian where as chisels Unit works on Big endian. The output is tested on 3 distant test vectors from IETF(Internet Engineering Task Force). 
+The output is tested on 3 distant test vectors from IETF(Internet Engineering Task Force). 
 
 
 -**Port List**  
