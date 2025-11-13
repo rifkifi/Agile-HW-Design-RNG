@@ -14,21 +14,19 @@ Salsa work on little endian where as chisels Unit works on Big endian. The outpu
 
 -**Port List**  
 
-
 	- Inputs
 
-		- in_start          ` input valid - wight = 1 `
-		- in_key		      ` input key from Sha256 - wight = 512 `
-		- in_nonce		      ` input nonce - wight = 64 `
-		- in_counter   		   ` input ctr - wight = 64 `
+		- in_start             ` input valid - wight = 1 `
+		- in_key		        ` input key from Sha256 - wight = 512 `
+		- in_nonce		        ` input nonce - wight = 64 `
+		- in_counter   		    ` input ctr - wight = 64 `
 		- in_unciphered_text   	`commented out - wight = 512 `    		
 		
 	- Outputs
 		
-		- out_ready		      ` output valid - wight = 1 `
-		- out_Decoding_key	   ` output key for decoding - wight = 512 `
+		- out_ready		       ` output valid - wight = 1 `
+		- out_Decoding_key	    ` output key for decoding - wight = 512 `
 		- out_ciphered_text  	`commented out - wight = 512 `  
-
 
 **ChaCha (Bernstien):** 
 
@@ -41,18 +39,18 @@ Chacha also works on little endian where as chisels Unit works on Big endian. Th
 
 	- Inputs
 
-		- in_start          ` input valid - wight = 1 `
-		- in_key		      ` input key from Sha256 - wight = 512 `
-		- in_nonce		      ` input nonce - wight = 64 `
-		- in_counter   		   ` input ctr - wight = 64 `
+		- in_start             ` input valid - wight = 1 `
+		- in_key		        ` input key from Sha256 - wight = 512 `
+		- in_nonce		        ` input nonce - wight = 64 `
+		- in_counter   		    ` input ctr - wight = 64 `
 		- in_unciphered_text   	`commented out - wight = 512 `    		
 		
 	- Outputs
 		
-		- out_ready		      ` output valid - wight = 1 `
-		- out_Decoding_key	   ` output key for decoding - wight = 512 `
+		- out_ready		       ` output valid - wight = 1 `
+		- out_Decoding_key	    ` output key for decoding - wight = 512 `
 		- out_ciphered_text  	`commented out - wight = 512 `  
 
 
 
-` The difference between the two is in the internal working of the cipher, whereas the output logic and port list remains the same. `
+`* The difference between the two is in the internal working of the cipher, whereas the output logic and port list remains the same. `
