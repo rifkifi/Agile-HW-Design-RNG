@@ -12,13 +12,15 @@ The Port List for salsa20 contains input enciphered text and output ciphered tex
 Salsa work on little endian where as chisels Unit works on Big endian. The output is tested on 3 distant test vectors whose output is calculated and then the algorithm is tested against it.
 
 
--**Port List**
+-**Port List**  
+
+
 	- Inputs
 		- in_start              ` input valid - wight = 1 `
 		- in_key		` input key from Sha256 - wight = 512 `
 		- in_nonce		` input nonce - wight = 64 `
 		- in_counter		` input ctr - wight = 64 `
-		- in_unciphered_text   	`commented out - wight = 512 `  		
+		- in_unciphered_text   	`commented out - wight = 512 `    		
 		
 	- Outputs
 		
@@ -34,7 +36,8 @@ The Port List for Chacha contains input enciphered text and output ciphered text
 Chacha also works on little endian where as chisels Unit works on Big endian. The output is tested on 3 distant test vectors from IETF(Internet Engineering Task Force). 
 
 
--**Port List**
+-**Port List**  
+
 	- Inputs
 		- in_start              ` input valid - wight = 1 `
 		- in_key		` input key from Sha256 - wight = 512 `
