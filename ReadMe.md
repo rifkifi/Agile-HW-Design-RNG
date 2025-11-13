@@ -6,7 +6,7 @@ The source code for both can be found under `\src\main\scala\` .
 Their tests are present under `\src\test\scala\` .   
 
 
-#SALSA20:
+# SALSA20:
 
 The Port List for salsa20 contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project. 
 Salsa work on little endian where as chisels Unit works on Big endian. The output is tested on 3 distant test vectors whose output is calculated and then the algorithm is tested against it.
@@ -30,7 +30,7 @@ Salsa work on little endian where as chisels Unit works on Big endian. The outpu
 
 
 
-#ChaCha (Bernstien):
+# ChaCha (Bernstien):
 
 The Port List for Chacha contains input enciphered text and output ciphered text(and its implementation), but with they are commented out, as they are not required by the scope of the project. 
 
@@ -59,6 +59,6 @@ Chacha also works on little endian where as chisels Unit works on Big endian. Th
 
 
 
-#Top fsm
+# Top fsm
 
-![Logo](images/fortuna_State_Machine.svg)
+![Logo](Agile-HW-Design-RNG/Images/fortuna_State_Machine.svg)
