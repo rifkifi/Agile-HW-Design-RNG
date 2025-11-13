@@ -1,4 +1,4 @@
-This will contain a part of Psuedo Random Generator for our 02201 Agile Hardware Design course at The Technical University of Denmark. This repo is publicly available for use under the `MIT License`.
+This will contain a part of Psuedo Random Generator for our `02201 Agile Hardware Design` course at `The Technical University of Denmark`. This repo is publicly available for use under the `MIT License`.
 
 **The repo, for now, will contain 2 algorithms (Salsa20 and ChaCha (Bernstien)), and there tests(test vector along with their expected results for each). **
 

@@ -210,7 +210,7 @@ class ChaCha extends Module {
     is(sDone) {
       //io.out_ciphered_text := io.in_unciphered_text ^ matrixFlat // no direcrt op on input store in keg first
       io.out_ready := (ctr_itr === 10.U)
-      state := sDone
+      state := sIdle
     }
   }
 }
