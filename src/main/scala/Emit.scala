@@ -20,3 +20,12 @@ object SHAd256Emit extends App {
 object SHA256Emit extends App {
   emitVerilog(new SHA256, Array("--target-dir", "generated"))
 }
+object PoolsEmit extends App {
+  emitVerilog(new Pools, Array("--target-dir", "generated"))
+}
+object ChaChaEmit extends App {
+  emitVerilog(new ChaCha, Array("--target-dir", "generated"))
+}
+object Salsa20Emit extends App {
+  emitVerilog(new Salsa20, Array("--target-dir", "generated"))
+}
