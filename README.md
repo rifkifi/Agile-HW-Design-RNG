@@ -8,7 +8,7 @@ The **Fortuna in Chisel** is a hardware design using **[Chisel](https://www.chis
 
 ## Core Architecture
 
-## 1. Seed Generator
+### 1. Seed Generator
 
 The **Seed Generator** module is responsible for producing random seeds that serve as cryptographic keys for the Generator core. In this design, we utilize a **SHA-256** hashing engine to transform collected entropy into a  **256-bit hash value**, which is then used as the seed for Fortuna’s generator core.
 
