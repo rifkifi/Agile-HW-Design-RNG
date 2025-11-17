@@ -4,13 +4,23 @@ import chisel3.util._
 class Datapath extends Module{
   val io = IO(new Bundle {
     val in_data = Input(UInt(8.W))
-    val SHAd_1_en = Input(Bool())
+
+    val SHAd_a_en = Input(Bool())
+    val SHAd_a_done = Output(Bool())
+
+    val SHAd_b_en = Input(Bool())
+    val SHAd_b_done = Output(Bool())
+
     val Pools_writeData = Input(Bool())
     val Pools_readData = Input(Bool())
+
+    val Cipher_en = Input(Bool())
+    val Cipher_done = Output(Bool())
+
     val updateStoredSeed = Input(Bool())
 
     val out = Output(UInt(256.W))
-    val SHAd_1_done = Output(Bool())
+
     val Pools_notEnoughDataFlag = Output(Bool())
   })
 
@@ -24,10 +34,10 @@ class Datapath extends Module{
 
   val cnt = RegInit(0.U(128.W))
 
-  SHAd256_a.io.start := io.SHAd_1_en
+  SHAd256_a.io.start := io.SHAd_a_en
   SHAd256_a.io.in := Cat(Pools.io.outUpdateData, io.in_data, 1.U(1.W), 0.U(183.W),264.U(64.W))
 
-  io.SHAd_1_done := SHAd256_a.io.done
+  io.SHAd_a_done := SHAd256_a.io.done
 
   Pools.io.inData := SHAd256_a.io.out
   Pools.io.writePool := io.Pools_writeData
@@ -51,6 +61,9 @@ class Datapath extends Module{
 
   SHAd256_b.io.shaBlocks := shaBlocks
   SHAd256_b.io.nbMsgBlocks := nbMsgBlocks.asUInt
+  SHAd256_b.io.start := io.SHAd_b_en
+
+  io.SHAd_b_done := SHAd256_b.io.done
 
   when(SHAd256_b.io.done){
     poolSeed := SHAd256_b.io.out
@@ -60,6 +73,9 @@ class Datapath extends Module{
 
   AES.io.in_key := seed
   AES.io.in_data := cnt
+  AES.io.start := io.Cipher_en
+
+  io.Cipher_done := AES.io.done
 
   when(AES.io.done){
     cnt := cnt + 1.U
