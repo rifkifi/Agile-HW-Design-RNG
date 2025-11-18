@@ -29,7 +29,7 @@ class Datapath extends Module{
   val SHAd256_b = Module(new SHAd256_Multi())
   val AES = Module(new AES256())
 
-  val storedSeed = RegInit(0.U(256.W))
+  val storedSeed = RegInit(123456789.U(256.W))
   val poolSeed = RegInit(0.U(256.W))
 
   val cnt = RegInit(0.U(128.W))

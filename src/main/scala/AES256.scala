@@ -207,10 +207,8 @@ class AES256 extends Module {
     }
     is(sDone) {
       // convert state matrix to sequence and assign it to output
+      io.done := true.B
       when(!io.start) { state := sIdle }
-      .otherwise {
-        io.done := true.B
-      }
     }
   }
 }
