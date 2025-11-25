@@ -1,5 +1,35 @@
 # Fortuna in Chisel
 
+## Project Overview
+
+### Milestones achieved
+
+ - [x] Setup Github Repo & include CI pipeline 
+ - [x] Setup a Readme containing Project description
+ - [x] Build Seed Generator
+ - [x] Build Pools Module 
+ - [x] Build Sha256 Module
+ - [x] Build AES-256 Cipher
+ - [x] build Salsa29 Module
+ - [x] Build ChaCha (Bernstirn) Module
+ - [x] build and introduce Verilog Emitter
+ - [x] build Datapath
+ - [x] build FSM topModule
+ - [] Introduce Cipher Selector Logic
+ - [] Performance matrix achieved
+ - [] keystream size matrix achieved
+ - [] Pin Connections(xdc)
+ - [] FPGA Implementation
+ - [] Utilisation report 
+
+### Future Implementations
+
+- [] Security Matrix  
+- [] Twofish cipher Module
+- [] Serpent cipher Module
+- [] Camelia cipher Module
+- [] Communication Module for data transfer FPGA - PC(UART,ethernet, SPI, PCIe) .
+
 ## Introduction
 
 The **Fortuna in Chisel** is a hardware design using **[Chisel](https://www.chisel-lang.org/)** that implements a **pseudo-random number generator (PRNG)** based on the  **[Fortuna algorithm](https://www.researchgate.net/publication/215858122_Fortuna_Cryptographically_Secure_Pseudo-Random_Number_Generation_In_Software_And_Hardware).** It translates the well-established Fortuna algorithm, originally specified for software, into a modular, synthesizable hardware architecture suitable for FPGA-based systems.
@@ -81,6 +111,8 @@ Institute of Standards and Technology (NIST)
 
 ### ChaCha
 
+Module implementation is based on [ChaCha by  Daniel J. Bernstein](https://cr.yp.to/chacha/chacha-20080128.pdf).
+
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/ChaCha.scala`)
   - `io.in_start: Bool` - start pulse, telling core to capture `in_key`, `in_nonce`, and `in_counter` and begin computing.
   - `io.in_key: UInst(256.W)` - 256‑bit ChaCha key.
@@ -90,6 +122,8 @@ Institute of Standards and Technology (NIST)
   - `io.out_ready: Bool` - Done or valid flag
 
 ### Salsa20
+
+Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/Salsa20.scala`)
   - Same interface as `ChaCha` (`in_start/in_key/in_nonce/in_counter/out_Decoding_key/out_ready`)
