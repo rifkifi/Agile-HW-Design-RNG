@@ -23,12 +23,14 @@ class FSM extends Module{
     val Cipher_en = Output(Bool())
     val Cipher_done = Input(Bool())
 
+    val useStoredSeed = Output(Bool())
     val updateStoredSeed = Output(Bool())
     val Pools_notEnoughDataFlag = Input(Bool())
   })
 
   io.busy := false.B
-  io.updateStoredSeed := true.B
+  io.useStoredSeed := true.B
+  io.updateStoredSeed := false.B
   io.SHAd_a_en := false.B
   io.SHAd_b_en := false.B
   io.Cipher_en := false.B
@@ -38,6 +40,7 @@ class FSM extends Module{
   val idle :: addDataToPool :: generateData :: generateKey :: Nil = Enum(4)
 
   val state = RegInit(idle)
+  val cnt = RegInit(0.U(8.W))
 
   io.valid_data := false.B
 
@@ -71,6 +74,7 @@ class FSM extends Module{
     is(generateData){
       io.busy := true.B
       // io.Cipher_en := true.B
+      io.updateStoredSeed := false.B
       when(io.Cipher_done){
         state := idle
         io.valid_data := true.B
@@ -82,6 +86,9 @@ class FSM extends Module{
       when(io.SHAd_b_done){
         io.Pools_readData := true.B
         state := generateData
+      }
+      when(cnt === 127.U){
+        io.updateStoredSeed := true.B
       }
     }
   }

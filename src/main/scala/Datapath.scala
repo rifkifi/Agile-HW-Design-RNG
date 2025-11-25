@@ -17,6 +17,7 @@ class Datapath extends Module{
     val Cipher_en = Input(Bool())
     val Cipher_done = Output(Bool())
 
+    val useStoredSeed = Input(Bool())
     val updateStoredSeed = Input(Bool())
 
     val out = Output(UInt(256.W))
@@ -69,9 +70,13 @@ class Datapath extends Module{
     poolSeed := SHAd256_b.io.out
   }
 
-  val seed = Mux(io.updateStoredSeed, storedSeed, poolSeed)
+  val state= Mux(io.useStoredSeed, storedSeed, poolSeed)
 
-  AES.io.in_key := seed
+  when(io.updateStoredSeed){
+    storedSeed := AES.io.out(255,0)
+  }
+
+  AES.io.in_key := state
   AES.io.in_data := cnt
   AES.io.start := io.Cipher_en
 

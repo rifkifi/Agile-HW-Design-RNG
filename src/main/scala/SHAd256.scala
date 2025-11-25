@@ -48,7 +48,7 @@ class SHAd256 extends Module {
   val state = RegInit(sIdle)
 
   io.done := false.B
-  io.out := 0.U
+  io.out := Cat(H(0), H(1), H(2), H(3), H(4), H(5), H(6), H(7))
 
   switch(state) {
     is(sIdle) {
@@ -243,7 +243,6 @@ class SHAd256 extends Module {
 
     is(sDone) {
       io.done := true.B
-      io.out := Cat(H(0), H(1), H(2), H(3), H(4), H(5), H(6), H(7))
       when(!io.start) { state := sIdle }
     }
   }
