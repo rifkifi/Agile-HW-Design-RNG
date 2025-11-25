@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-### Milestones achieved
+### Milestones Planned
 
  - [x] Setup Github Repo & include CI pipeline 
  - [x] Setup a Readme containing Project description
@@ -15,20 +15,20 @@
  - [x] build and introduce Verilog Emitter
  - [x] build Datapath
  - [x] build FSM topModule
- - [] Introduce Cipher Selector Logic
- - [] Performance matrix achieved
- - [] keystream size matrix achieved
- - [] Pin Connections(xdc)
- - [] FPGA Implementation
- - [] Utilisation report 
+ - [ ] Introduce Cipher Selector Logic
+ - [ ] Performance matrix achieved
+ - [ ] keystream size matrix achieved
+ - [ ] Pin Connections(xdc)
+ - [ ] FPGA Implementation
+ - [ ] Utilisation report 
 
 ### Future Implementations
 
-- [] Security Matrix  
-- [] Twofish cipher Module
-- [] Serpent cipher Module
-- [] Camelia cipher Module
-- [] Communication Module for data transfer FPGA - PC(UART,ethernet, SPI, PCIe) .
+- [ ] Security Matrix  
+- [ ] Twofish cipher Module
+- [ ] Serpent cipher Module
+- [ ] Camelia cipher Module
+- [ ] Communication Module for data transfer FPGA - PC(UART,ethernet, SPI, PCIe) .
 
 ## Introduction
 
