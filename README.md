@@ -33,7 +33,7 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
  - [x] Build Pools Module 
  - [x] Build Sha256 Module
  - [x] Build AES-256 Cipher
- - [x] build Salsa29 Module
+ - [x] build Salsa20 Module
  - [x] Build ChaCha (Bernstirn) Module
  - [x] build and introduce Verilog Emitter
  - [x] build Datapath
