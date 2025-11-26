@@ -20,7 +20,7 @@ class Datapath extends Module{
     val useStoredSeed = Input(Bool())
     val updateStoredSeed = Input(Bool())
 
-    val out = Output(UInt(256.W))
+    val out = Output(UInt(128.W))
 
     val Pools_notEnoughDataFlag = Output(Bool())
   })
@@ -73,7 +73,7 @@ class Datapath extends Module{
   val state= Mux(io.useStoredSeed, storedSeed, poolSeed)
 
   when(io.updateStoredSeed){
-    storedSeed := AES.io.out(255,0)
+    storedSeed := Cat(storedSeed(255,128), AES.io.out)
   }
 
   AES.io.in_key := state

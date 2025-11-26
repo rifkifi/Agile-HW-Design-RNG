@@ -74,21 +74,22 @@ class FSM extends Module{
     is(generateData){
       io.busy := true.B
       // io.Cipher_en := true.B
-      io.updateStoredSeed := false.B
       when(io.Cipher_done){
         state := idle
         io.valid_data := true.B
+        cnt := cnt + 1.U
+      }
+      when(cnt === 127.U){
+        io.updateStoredSeed := true.B
       }
     }
 
     is(generateKey){
       io.busy := true.B
       when(io.SHAd_b_done){
+        io.useStoredSeed := false.B
         io.Pools_readData := true.B
         state := generateData
-      }
-      when(cnt === 127.U){
-        io.updateStoredSeed := true.B
       }
     }
   }

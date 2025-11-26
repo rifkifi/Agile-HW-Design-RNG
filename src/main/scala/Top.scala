@@ -7,7 +7,7 @@ class Top extends Module{
     val generate_data = Input(Bool())
 
     val in_random_data = Input(UInt(8.W))
-    val out_rng_data = Output(UInt(512.W))
+    val out_rng_data = Output(UInt(128.W))
 
     val busy = Output(Bool())
     val valid_data = Output(Bool())
@@ -38,6 +38,7 @@ class Top extends Module{
   Datapath.io.Pools_readData := FSM.io.Pools_readData
 
   Datapath.io.updateStoredSeed := FSM.io.updateStoredSeed
+  Datapath.io.useStoredSeed := FSM.io.useStoredSeed
 
   FSM.io.Pools_notEnoughDataFlag := Datapath.io.Pools_notEnoughDataFlag
 }
