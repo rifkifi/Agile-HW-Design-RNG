@@ -5,9 +5,11 @@
 The **Fortuna in Chisel** is a hardware design using **[Chisel](https://www.chisel-lang.org/)** that implements a **pseudo-random number generator (PRNG)** based on the  **[Fortuna algorithm](https://www.researchgate.net/publication/215858122_Fortuna_Cryptographically_Secure_Pseudo-Random_Number_Generation_In_Software_And_Hardware).** It translates the well-established Fortuna algorithm, originally specified for software, into a modular, synthesizable hardware architecture suitable for FPGA-based systems.
 
 ### 1.1 Core Architecture
+
 The image below (Figure 1) illustrates the architecture of Fortuna
 ![1762873081647](image/README/1762873081647.png)
-<p style="text-align: center;">Figure 1. Fortuna Architechture</p>
+
+<p align="center">Figure 1. Fortuna Architechture</p>
 
 #### 1.1.1 Seed Generator
 
@@ -27,27 +29,27 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 
 #### Milestones Planned
 
- - [x] Setup Github Repo & include CI pipeline 
- - [x] Setup a Readme containing Project description
- - [x] Build Seed Generator
- - [x] Build Pools Module 
- - [x] Build Sha256 Module
- - [x] Build AES-256 Cipher
- - [x] build Salsa20 Module
- - [x] Build ChaCha (Bernstirn) Module
- - [x] build and introduce Verilog Emitter
- - [x] build Datapath
- - [x] build FSM topModule
- - [ ] Introduce Cipher Selector Logic
- - [ ] Performance matrix achieved
- - [ ] keystream size matrix achieved
- - [ ] Pin Connections(xdc)
- - [ ] FPGA Implementation
- - [ ] Utilisation report 
+- [X] Setup Github Repo & include CI pipeline
+- [X] Setup a Readme containing Project description
+- [X] Build Seed Generator
+- [X] Build Pools Module
+- [X] Build Sha256 Module
+- [X] Build AES-256 Cipher
+- [X] build Salsa20 Module
+- [X] Build ChaCha (Bernstirn) Module
+- [X] build and introduce Verilog Emitter
+- [X] build Datapath
+- [X] build FSM topModule
+- [ ] Introduce Cipher Selector Logic
+- [ ] Performance matrix achieved
+- [ ] keystream size matrix achieved
+- [ ] Pin Connections(xdc)
+- [ ] FPGA Implementation
+- [ ] Utilisation report
 
 #### Future Implementations
 
-- [ ] Security Matrix  
+- [ ] Security Matrix
 - [ ] Twofish cipher Module
 - [ ] Serpent cipher Module
 - [ ] Camelia cipher Module
@@ -56,17 +58,17 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 ### 2.2 Project Layout
 
 - **Sources**: `Agile-HW-Design-RNG/src/main/scala/`
-  - `AES256.scala`  - AES‑256 (ECB core) Chisel module.
+  - `AES256.scala`  - AES‑256 (ECB core) with 256 bit key and 128 bit encrypted output.
   - `SHA256.scala` - Single‑block SHA‑256 core (iterative 64 rounds).
   - `SHAd256.scala` - Double SHA‑256 core: SHA‑256(SHA‑256(msg)).
+  - `SHAd256_Multi.scala` - Multi-block double-hash engine that consumes concatenated pool data and emits SHA256(SHA256(msg)).
   - `ChaCha.scala` - ChaCha‑like 512‑bit keystream block generator.
   - `Salsa20.scala` - Salsa20 512‑bit keystream block generator.
   - `Emit.scala`  - `runMain` emitters for SystemVerilog generation.
   - `Pools.scala` - Simple seeding pools component for RNG reseeding logic.
-  - `Datapath.scala` - Datapath for foturna that orchestrates how entropy move through from Seed Generator to Generator Core.
+  - `Datapath.scala` - Datapath for fortuna that orchestrates how entropy move through from Seed Generator to Generator Core.
   - `FSM.scala` - Fortuna Control State machine.
-  - `Top.scala` - .
-  - `top_fsm.scala` - Fortuna control state machine skeleton.
+  - `Top.scala` - Top-level wrapper wiring the FSM with the datapath and exposing the RNG interface.
 - **Tests**: `Agile-HW-Design-RNG/src/test/scala/`
   - `AES256Test.scala` - AES unit test with PKCS#7 padding and known vector.
   - `CoSimulationTest.scala` - Co‑simulation against Java golden models (AES, SHA256, SHAd256).
@@ -76,10 +78,9 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 
 ### 2.3 Hardware Modules Descriptions
 
-#### SHA256 Module
+#### 2.3.1 SHA256 Module
 
-Module implementation is based on [Secure Hash Standard Document](https://csrc.nist.gov/files/pubs/fips/180-2/final/docs/fips180-2.pdf) published by National
-Institute of Standards and Technology (NIST)
+Single-block SHA-256 core that follows FIPS 180-2 to hash a 512-bit message block (entropy in this project) into a 256-bit digest (as key for Generator Core in this project). Module implementation is based on [Secure Hash Standard Document](https://csrc.nist.gov/files/pubs/fips/180-2/final/docs/fips180-2.pdf) published by National Institute of Standards and Technology (NIST)
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/SHA256.scala`)
 
@@ -88,15 +89,26 @@ Institute of Standards and Technology (NIST)
   - `io.done: Bool` - high when digest is valid.
   - `io.out: UInt(256.W)` - hashed message
 
-#### SHAd256 Module
+#### 2.3.2 SHAd256 Module
+
+Implements the classic double-hash pipeline `SHA256(SHA256(msg))` for single 512-bit blocks.
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/SHAd256.scala`)
   - Same interface as `SHA256` (`in/start/ready/done/out`)
 
-#### AES256 Module
+#### 2.3.3 SHAd256_Multi Module
 
-Module implementation is based on [Advanced Encryption Standard Document](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf) published by National
-Institute of Standards and Technology (NIST)
+`SHAd256_Multi.scala` extends the double-hash core so it can absorb up to 8 kbits of concatenated pool data, iterate through each 512-bit block, and then automatically hash the intermediate digest a second time with correct Fortuna padding. It produces the 256-bit reseed material that eventually becomes the AES key.
+
+- IO (file: `Agile-HW-Design-RNG/src/main/scala/SHAd256_Multi.scala`)
+  - `io.shaBlocks: UInt(8192.W)` - packed pool data plus padding bits that form the first SHA-256 input.
+  - `io.nbMsgBlocks: UInt(5.W)` - number of 512-bit blocks that should be processed before launching the second hash.
+  - `io.start: Bool` / `io.done: Bool` - handshake for kicking off and detecting completion of the double hash.
+  - `io.out: UInt(256.W)` - final SHA256(SHA256(msg)) digest handed to the datapath.
+
+#### 2.3.4 AES256 Module
+
+Hardware AES-256 core that encrypts 128-bit blocks (counter in this project) using a 256-bit key via start/done handshakes. Module implementation is based on [Advanced Encryption Standard Document](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf) published by National Institute of Standards and Technology (NIST)
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/AES256.scala`)
   - `io.in_data: UInt(128.W)` - plaintext block.
@@ -104,7 +116,9 @@ Institute of Standards and Technology (NIST)
   - `io.start: Bool`, `io.ready: Bool`, `io.done: Bool` - handshake.
   - `io.out: UInt(128.W)` - ciphertext block output.
 
-#### Pools
+#### 2.3.5 Pools Module
+
+Implements Fortuna's 32 entropy pools, managing masked reads for reseeding and clearing pools once they are consumed.
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/Pools.scala`)
   - `io.inData: UInt(256.W)` - new hashed seed.
@@ -115,24 +129,47 @@ Institute of Standards and Technology (NIST)
   - `io.outSeedingData: Vec(32, UInt(256.W))` - masked pool data.
   - `io.outUpdateData: UInt(32.W)` - current pool’s data.
 
-#### Datapath
+#### 2.3.6 Datapath Module
 
-- IO (file: `Agile-HW-Design-RNG/src/main/scala/Pools.scala`)
-  - `io.inData: UInt(256.W)` - new hashed seed.
-  - `io.writePool: Bool` - start write inData into pools.
-  - `io.readPool: Bool` - uses an internal reseed counter to generate a mask over the 32 pools and clear used pools when reseeding.
-  - `io.notEnoughDataFlag: Bool` - indicates data in the pools is not enough.
-  - `io.outPoolsCount: UInt(5.W))` - number of pools included in output.
-  - `io.outSeedingData: Vec(32, UInt(256.W))` - masked pool data.
-  - `io.outUpdateData: UInt(32.W)` - current pool’s data.
+Ties together the SHA cores, pools, stored seed register, and AES generator so entropy bytes can be ingested, reseeded, and finally turned into 128-bit keystream blocks (random number).
 
-#### FSM
-The Figure 2 below illustrates the state diagram of the machine.
+- IO (file: `Agile-HW-Design-RNG/src/main/scala/Datapath.scala`)
+  - `io.in_data: UInt(8.W)` - external entropy byte stream.
+  - `io.SHAd_a_en/io.SHAd_a_done: Bool` - control handshake for the single-block SHA when ingesting data.
+  - `io.SHAd_b_en/io.SHAd_b_done: Bool` - handshake for the multi-block SHAd256 that produces reseed material.
+  - `io.Pools_writeData/io.Pools_readData: Bool` - strobes that insert entropy or request masked pool outputs.
+  - `io.Cipher_en/io.Cipher_done: Bool` - drives the AES256 generator.
+  - `io.useStoredSeed/io.updateStoredSeed: Bool` - select between the stored seed and freshly hashed pool seed, and capture a refreshed stored seed chunk when desired.
+  - `io.out: UInt(128.W)` - latest 128-bit AES block (random number).
+  - `io.Pools_notEnoughDataFlag: Bool` - indicates whether the pools contain enough entropy for reseeding.
+
+#### 2.3.7 FSM Module
+
+This FSM coordinates when the system generates keys, generates output data, or adds entropy to a pool, depending on request signals and completion signals of SHA engines and cipher engines. The Figure 2 below illustrates the state diagram of the machine.
+
 ![1762873081647](image/README/FSMDiagramRNG.png)
-<p style="text-align: center;">Figure 2. FSM Diagram</p>
 
-#### ChaCha
-Module implementation is based on [ChaCha by  Daniel J. Bernstein](https://cr.yp.to/chacha/chacha-20080128.pdf).
+<p align="center">Figure 2. FSM Diagram</p>
+
+- IO (file: `Agile-HW-Design-RNG/src/main/scala/FSM.scala`)
+  - `io.add_data: Bool` / `io.generate_data: Bool` - host commands to insert entropy or request output.
+  - `io.busy: Bool` / `io.valid_data: Bool` - status flags published to the host.
+  - `io.SHAd_a_en`, `io.SHAd_b_en`, `io.Pools_writeData`, `io.Pools_readData`, `io.Cipher_en`, `io.useStoredSeed`, `io.updateStoredSeed`: Bool control signals driven into the datapath.
+  - `io.SHAd_a_done`, `io.SHAd_b_done`, `io.Cipher_done`, `io.Pools_notEnoughDataFlag`: Bool feedbacks consumed by the FSM to sequence operations.
+
+#### 2.3.8 Top Module
+
+Thin integration wrapper instantiating `FSM` plus `Datapath` and exposing the simplified RNG interface to the outside world.
+
+- IO (file: `Agile-HW-Design-RNG/src/main/scala/Top.scala`)
+  - `io.add_data: Bool` / `io.generate_data: Bool` - replicated host requests forwarded to the FSM.
+  - `io.in_random_data: UInt(8.W)` - entropy byte stream that feeds the datapath.
+  - `io.out_rng_data: UInt(128.W)` - Random number output.
+  - `io.busy: Bool` / `io.valid_data: Bool` - status indicators sourced from the FSM.
+
+#### 2.3.9 ChaCha Module
+
+Alternative chiper module for generator core. Module implementation is based on [ChaCha by  Daniel J. Bernstein](https://cr.yp.to/chacha/chacha-20080128.pdf).
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/ChaCha.scala`)
   - `io.in_start: Bool` - start pulse, telling core to capture `in_key`, `in_nonce`, and `in_counter` and begin computing.
@@ -142,8 +179,10 @@ Module implementation is based on [ChaCha by  Daniel J. Bernstein](https://cr.yp
   - `io.out_Decoding_key: UInt(521.W))` - The 512‑bit ChaCha keystream block
   - `io.out_ready: Bool` - Done or valid flag
 
-#### Salsa20
-Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
+#### 2.3.10 Salsa20 Module
+
+Alternative chiper module for generator core. Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
+
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/Salsa20.scala`)
   - Same interface as `ChaCha` (`in_start/in_key/in_nonce/in_counter/out_Decoding_key/out_ready`)
 
@@ -158,12 +197,16 @@ Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chac
 * **PoolsTester** `(src/test/scala/PoolsTester.scala)`
   sanity test for pool writes, reseed behavior, and **outPoolsCount** for different reseed counter values.
 * **CoSimulationTest** `(src/test/scala/CoSimulationTest.scala)`
-  co‑simulation against Java built-in library for AES256 and SHA256:
-  * AES‑256 core vs **Java Chiper AES256** for multiple plaintexts.
-  * SHA‑256 and SHAd256 cores vs Java **MessageDigest("SHA-256")** (single and double hash).
+  co-simulation against Java built-in library for AES256 and SHA256:
+  * AES-256 core vs **Java Chiper AES256** for multiple plaintexts.
+  * SHA-256 and SHAd256 cores vs Java **MessageDigest("SHA-256")** (single and double hash).
     Includes helper traits and classes (AES256Hardware, AES256GoldenModel, SHA256Hardware, SHA256GoldenModel, SHAd256Hardware, SHAd256GoldenModel, SHA256Helper).
+* **DatapathTester** `(src/test/scala/DatapathTester.scala)`
+  It runs the datapath’s AES path by itself and checks that the stored-seed AES counter gives different outputs each time it’s triggered.
+* **TopTester** `(src/test/scala/TopTester.scala)`
+  It drives the Top module’s public interface, toggling generate requests, watching busy, and reading the RNG output, to make sure the combined FSM/datapath returns a new keystream block each time.
 * **test_ChaCha** `(src/test/scala/test_ChaCha.scala)`
-  runs the **ChaCha** core on selected test vectors and checks the 512‑bit **out_Decoding_key** against known reference outputs.
+  runs the **ChaCha** core on selected test vectors and checks the 512-bit **out_Decoding_key** against known reference outputs.
 * **test_Salsa20** `(src/test/scala/test_Salsa20.scala)`
   similarly validates the **Salsa20** core keystream against known vectors.
 
@@ -176,12 +219,16 @@ Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chac
   * **PoolsEmit**:  Emmitting SystemVerilog for Pools module
   * **ChaChaEmit**:  Emmitting SystemVerilog for ChaCha module
   * **Salsa20Emit**:  Emmitting SystemVerilog for Salsa20 module
+  * **FSMEmit**:  Emmitting SystemVerilog for FSM module
+  * **DatapathEmit**:  Emmitting SystemVerilog for Datapath module
+  * **SHAd256_MultiEmit**:  Emmitting SystemVerilog for SHAd256_Multi module
+  * **TopEmit**:  Emmitting SystemVerilog for Top module
 
 ### 2.6 Build & Test
 
 - Requirements: JDK 17+, `sbt`, Scala 2.13, Chisel 6.7.0, and chiseltest 6.0.0.
 - Run all tests: `sbt test`
-- Run a specific test: `sbt "testOnly *SHA256Tester"`, `sbt "testOnly *SHAd256Tester"`, or `sbt "testOnly *AES256Test"`.
+- Run a specific test e.g: `sbt "testOnly *SHA256Tester"`, `sbt "testOnly *SHAd256Tester"`, or `sbt "testOnly *AES256Test"`.
 
 ### 2.7 SystemVerilog Generation
 
@@ -195,12 +242,12 @@ Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chac
   - `sbt "runMain SHAd256_MultiEmit"` → emits SV for SHAd256 Multi into `generated/`.
   - `sbt "runMain ChaChaEmit"` → emits SV for ChaCha into `generated/`.
   - `sbt "runMain Salsa20Emit"` → emits SV for Salsa20 into `generated/`.
+  - `sbt "runMain TopEmit"` → emits SV for Top Module into `generated/`.
 
 ## 3. FPGA Implementation
+
 ### 3.1 XDC Connections
 
 ### 3.2 Resource Utilization
 
 ### 3.3 Circuit Diagram
-
-### 
