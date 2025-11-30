@@ -2,5 +2,5 @@ import chisel3._
 
 object GenDatapath extends App {
   // Generate Verilog into "generated" directory
-  emitVerilog(new Datapath(), Array("--target-dir", "generated"))
+  emitVerilog(new Datapath(CipherType.AES, false), Array("--target-dir", "generated"))
 }

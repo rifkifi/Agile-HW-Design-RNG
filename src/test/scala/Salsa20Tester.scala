@@ -2,7 +2,7 @@ import chisel3._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 
-class test_Salsa20  extends AnyFlatSpec with ChiselScalatestTester {
+class Salsa20Tester  extends AnyFlatSpec with ChiselScalatestTester {
   "test_Salsa20 " should "pass" in {
     test(new Salsa20) { dut =>
 

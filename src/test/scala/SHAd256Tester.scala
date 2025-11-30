@@ -7,7 +7,7 @@ class SHAd256Tester extends AnyFlatSpec with ChiselScalatestTester {
   behavior of "SHAd256"
 
   it should "SHAd256 single block hash" in {
-    test(new SHAd256()).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
+    test(new SHAd256(true)).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
       // Example: "abc" padded into 512 bits
       // Real SHA-256 requires proper padding, but here we just test with one block
       val abcPadded = BigInt("61626380000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018", 16)

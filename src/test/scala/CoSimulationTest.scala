@@ -60,7 +60,7 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
 
   behavior of "SHAd256 co-simulation with java built-in SHA-256 implementation"
   it should "generate the same hash output" in {
-    test(new SHAd256()) { dut =>
+    test(new SHAd256(true)) { dut =>
       println("Testing SHAd256 functionality")
       val messages =
         Seq("abc", "hello world!", "Chisel SHA256", "Agile HW Design")
@@ -91,19 +91,19 @@ class AES256Hardware(dut: AES256) extends AES256Impl[BigInt] {
   def result(key32: String, block16: BigInt): String = {
     // println(s"Running hardware AES256 with block=${block16.toString(16)}")
     // DUT Processing
-    while (!dut.io.ready.peek().litToBoolean) { dut.clock.step(1) }
-    dut.io.start.poke(true.B)
+
     dut.io.in_key.poke(
       s"h${key32}".U(
         256.W
       )
     )
     dut.io.in_data.poke(block16.U(128.W))
+    dut.io.start.poke(true.B)
     dut.clock.step()
+    dut.io.start.poke(false.B)
     while (!dut.io.done.peek().litToBoolean) { dut.clock.step(1) }
     val res = dut.io.out.peek().litValue.toString(16)
     dut.clock.step()
-    dut.io.start.poke(false.B)
     res
   }
 }

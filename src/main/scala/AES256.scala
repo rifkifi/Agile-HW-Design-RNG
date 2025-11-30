@@ -7,14 +7,7 @@ import chisel3.util._
  */
 
 class AES256 extends Module {
-  val io = IO(new Bundle {
-    val in_data = Input(UInt(128.W))
-    val in_key = Input(UInt(256.W))
-    val start = Input(Bool())
-    val ready = Output(Bool())
-    val done = Output(Bool())
-    val out = Output(UInt(128.W))
-  })
+  val io = IO(new CipherIO(128))
 
   // AES S-box table
   private val sbox = VecInit(Seq(
@@ -145,7 +138,6 @@ class AES256 extends Module {
   
   io.done := false.B
   io.out := matxToSeq(dataState)
-  io.ready := state === sIdle
 
   switch(state) {
     is(sIdle) {
@@ -211,4 +203,8 @@ class AES256 extends Module {
       when(!io.start) { state := sIdle }
     }
   }
+}
+
+object AES256 {
+  val outWidth = 128
 }

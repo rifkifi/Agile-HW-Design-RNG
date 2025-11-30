@@ -1,7 +1,27 @@
 import chisel3._
 import chisel3.util._
 
-class Datapath extends Module{
+object CipherType extends ChiselEnum {
+  val AES, CHACHA = Value
+}
+
+class CipherIO(maxOutWidth: Int) extends Bundle {
+  val start    = Input(Bool())
+  val in_key   = Input(UInt(256.W))
+  val in_data  = Input(UInt(128.W))     // used by AES
+  val in_nonce = Input(UInt(64.W))      // used by ChaCha
+  val in_counter = Input(UInt(64.W))    // used by ChaCha
+  val out      = Output(UInt(maxOutWidth.W))
+  val done     = Output(Bool())
+}
+
+class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
+
+  val outWidth = cipher match {
+    case CipherType.AES => AES256.outWidth
+    case CipherType.CHACHA   => ChaCha.outWidth
+  }
+
   val io = IO(new Bundle {
     val in_data = Input(UInt(8.W))
 
@@ -20,15 +40,23 @@ class Datapath extends Module{
     val useStoredSeed = Input(Bool())
     val updateStoredSeed = Input(Bool())
 
-    val out = Output(UInt(128.W))
+    val out = Output(UInt(outWidth.W))
 
     val Pools_notEnoughDataFlag = Output(Bool())
   })
 
-  val SHAd256_a = Module(new SHAd256())
+  val SHAd256_a = Module(new SHAd256(debug))
   val Pools = Module(new Pools())
-  val SHAd256_b = Module(new SHAd256_Multi())
-  val AES = Module(new AES256())
+  val SHAd256_b = Module(new SHAd256_Multi(debug))
+
+
+  val CipherIO = cipher match {
+    case CipherType.AES => Module(new AES256()).io
+    case CipherType.CHACHA  => Module(new ChaCha()).io
+  }
+
+
+  //val AES = Module(new AES256())
 
   val storedSeed = RegInit(123456789.U(256.W))
   val poolSeed = RegInit(0.U(256.W))
@@ -70,21 +98,34 @@ class Datapath extends Module{
     poolSeed := SHAd256_b.io.out
   }
 
-  val state= Mux(io.useStoredSeed, storedSeed, poolSeed)
+  val state = Mux(io.useStoredSeed, storedSeed, poolSeed)
 
   when(io.updateStoredSeed){
-    storedSeed := Cat(storedSeed(255,128), AES.io.out)
+    storedSeed := Cat(storedSeed(255,128), CipherIO.out)
   }
 
-  AES.io.in_key := state
-  AES.io.in_data := cnt
-  AES.io.start := io.Cipher_en
+  CipherIO.start := io.Cipher_en
+  CipherIO.in_key := state
+  CipherIO.in_data := cnt
+  CipherIO.in_counter := cnt
+  CipherIO.in_nonce := 0.U
 
-  io.Cipher_done := AES.io.done
+  io.Cipher_done := CipherIO.done
+  io.out := CipherIO.out
 
-  when(AES.io.done){
+  when(CipherIO.done){
     cnt := cnt + 1.U
   }
 
-  io.out := AES.io.out
+//  AES.io.in_key := state
+//  AES.io.in_data := cnt
+//  AES.io.start := io.Cipher_en
+//
+//  io.Cipher_done := AES.io.done
+//
+//  when(AES.io.done){
+//    cnt := cnt + 1.U
+//  }
+//
+//  io.out := AES.io.out
 }

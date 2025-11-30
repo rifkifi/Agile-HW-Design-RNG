@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class Top extends Module{
+class FortunaTop(val debug: Boolean) extends Module{
   val io = IO(new Bundle {
     val add_data = Input(Bool())
     val generate_data = Input(Bool())
@@ -14,7 +14,7 @@ class Top extends Module{
   })
 
 
-  val Datapath = Module(new Datapath())
+  val Datapath = Module(new Datapath(CipherType.AES, debug))
   val FSM = Module(new FSM())
 
   io.busy := FSM.io.busy
