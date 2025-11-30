@@ -84,7 +84,7 @@ class ChaCha extends Module {
     matrix_4x4(3)(0), matrix_4x4(3)(1), matrix_4x4(3)(2), matrix_4x4(3)(3)  // column 3
   )
 
-  io.out := Cat(flattened)  // reverse to match MSB→LSB ordering in io.out
+  io.out := Cat(flattened)
 
   //fsm
   switch(state) {

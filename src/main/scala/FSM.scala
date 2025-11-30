@@ -45,7 +45,9 @@ class FSM extends Module{
   io.valid_data := false.B
 
   switch(state){
+
     is(idle){
+      io.valid_data := true.B
       when(io.add_data){
         state := addDataToPool
         io.busy := true.B
@@ -73,7 +75,6 @@ class FSM extends Module{
 
     is(generateData){
       io.busy := true.B
-      // io.Cipher_en := true.B
       when(io.Cipher_done){
         state := idle
         io.valid_data := true.B
