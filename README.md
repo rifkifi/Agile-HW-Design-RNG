@@ -6,10 +6,11 @@ The **Fortuna in Chisel** is a hardware design using **[Chisel](https://www.chis
 
 ### 1.1 Core Architecture
 
-The Figure 1 illustrates the architecture of Fortuna.
+The Figure 1.1 illustrates the architecture of Fortuna.
+
 ![1762873081647](image/README/1762873081647.png)
 
-<p align="center">Figure 1. Fortuna Architecture.</p>
+<p align="center">Figure 1.1:  Fortuna Architecture.</p>
 
 #### 1.1.1 Seed Generator
 
@@ -150,13 +151,13 @@ Ties together the SHA cores, pools, stored seed register, and AES generator so e
 
 #### 2.3.7 FSM Module
 
-This FSM coordinates when the system generates keys, generates output data, or adds entropy to a pool, depending on request signals and completion signals of SHA engines and cipher engines. The Figure 2 below illustrates the state diagram of the machine.
+This FSM coordinates when the system generates keys, generates output data, or adds entropy to a pool, depending on request signals and completion signals of SHA engines and cipher engines. The Figure 2.1 illustrates the state diagram of the machine.
 
 <div align="center">
 <img src="image/README/FSMDiagramRNG.png" alt="fms">
 </div>
 
-<p align="center">Figure 2. FSM Diagram.</p>
+<p align="center">Figure 2.1: FSM Diagram.</p>
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/FSM.scala`)
   - `io.add_data: Bool` / `io.generate_data: Bool` - host commands to insert entropy or request output.
@@ -186,12 +187,52 @@ Alternative chiper module for generator core. Module implementation is based on 
   - `io.out: UInt(521.W)` - The 512‑bit ChaCha keystream block
   - `io.done: Bool` - Done or valid flag
 
+
+The figure 2.2 gives the initial internal state of the ChaCha Module. This is later changes and diffuses through a quartet function, This happens 10 x 2 times a coloumn - diagnal shift pair.  
+
+<div align="center">
+<img src="image/README/chacha_initial_state.png" alt="chacha_internal">
+</div>
+
+<p align="center">Figure 2.2: Connection Diagram.</p>
+
+
+
+The figure 2.3 gives the quartet function for the Chacha Module
+
+<div align="center">
+<img src="image/README/chacha_quartet_round.png" alt="cha_quat">
+</div>
+
+<p align="center">Figure 2.4: ChaCha Quartet Function.</p>
+
 #### 2.3.10 Salsa20 Module
 
 Alternative cipher module for generator core. Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/Salsa20.scala`)
-  - Same interface as `ChaCha` (`in_start/in_key/in_nonce/in_counter/out_Decoding_key/out_ready`)
+  - Same interface as `ChaCha` (`in_start,in_key,in_nonce,in_counter,out_Decoding_key,out_ready`)
+
+The figure 2.5  gives the initial internal state of the Salsa20  Module. This later changes and diffuses through a quartet function, This also happens 10 x 2 times a coloumn - row shift pair.  
+
+<div align="center">
+<img src="image/README/initial_state_Salsa.png" alt="ini_salsa">
+</div>
+
+<p align="center">Figure 2.5: Inital state Matrix of Salsa20 Core.</p>
+
+
+
+The figure 2.6 gives the quartet function for the Salsa20 Module.
+
+<div align="center">
+<img src="image/README/Quartet_salsa.png" alt="sal_quat">
+</div>
+
+<p align="center">Figure 2.6: Salsa20 Quartet Function.</p>
+
+
+**\* It is important to note that both Salsa and Chacha cipher operated internally at little-endian while the Unit in Chisel is big-endian.** 
 
 ### 2.4 Testing
 
@@ -255,33 +296,38 @@ The design was implemented on a Nexys A7 FPGA development board. The SystemVeril
 ### 3.1 Connection Diagram
 
 In this project, switches are used to provide entropy inputs, and LEDs are used to display the generated random numbers. Some buttons are assigned to trigger the collection of entropy and to start the generator process. Additional LEDs serve as indicators for the valid and busy signals.
+
+The figure 3.1 gives the pin connections for the Fortuna design.
+
 <div align="center">
 <img src="image/README/fpgapin.png" alt="fpga_pin">
 </div>
 
-<p align="center">Figure 3. Connection Diagram.</p>
+<p align="center">Figure 3.1: Connection Diagram.</p>
 
 ### 3.2 Resource Utilization
 
-The design uses about 41% of the available slice LUTs and 13% of slice registers of Nexys A7 FPGA. Figure 4 illustrates details of the resource utilization for the design.
+The design uses about 41% of the available slice LUTs and 13% of slice registers of Nexys A7 FPGA. Figure 3.2 illustrates details of the resource utilization for the design.
 
 <div align="center">
 <img src="image/README/report_utilization.png" alt="util">
 </div>
 
-<p align="center">Figure 4. Resource Utilization.</p>
+<p align="center">Figure 3.2:  Resource Utilization.</p>
 
 ### 3.3 Timing Report
 
-Figure 5 reports the critical clock paths inside the design. Each path has a total delay around 52-53 ns and satisfies the requirement.
+Figure 3.3 reports the critical clock paths inside the design. Each path has a total delay around 52-53 ns and satisfies the requirement.
+
+Figure 3.3 reports the timing for the fortuna on the nexys
 <div align="center">
 <img src="image/README/report_timing.png" alt="timing">
 </div>
 
-<p align="center">Figure 5. Timing Report.</p>
+<p align="center">Figure 3.3: Timing Report.</p>
 
 ### 3.4 Video Demo
 
-The implementation demo can be seen in the Video 1 below. The FPGA generates random numbers and displays them on the LEDs when the data-generation button is pressed.
+The implementation demo can be seen in the Video 3.1 below. The FPGA generates random numbers and displays them on the LEDs when the data-generation button is pressed.
 ![demo](image/README/Demo.gif)
-<p align="center">Video 1. FPGA Implementation Demo.</p>
+<p align="center">Video 3.1: FPGA Implementation Demo.</p>
