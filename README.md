@@ -6,10 +6,10 @@ The **Fortuna in Chisel** is a hardware design using **[Chisel](https://www.chis
 
 ### 1.1 Core Architecture
 
-The image below (Figure 1) illustrates the architecture of Fortuna
+The Figure 1 illustrates the architecture of Fortuna.
 ![1762873081647](image/README/1762873081647.png)
 
-<p align="center">Figure 1. Fortuna Architechture</p>
+<p align="center">Figure 1. Fortuna Architecture.</p>
 
 #### 1.1.1 Seed Generator
 
@@ -36,7 +36,7 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 - [X] Build Sha256 Module
 - [X] Build AES-256 Cipher
 - [X] build Salsa20 Module
-- [X] Build ChaCha (Bernstirn) Module
+- [X] Build ChaCha (Bernstein) Module
 - [X] build and introduce Verilog Emitter
 - [X] build Datapath
 - [X] build FSM Module
@@ -152,9 +152,11 @@ Ties together the SHA cores, pools, stored seed register, and AES generator so e
 
 This FSM coordinates when the system generates keys, generates output data, or adds entropy to a pool, depending on request signals and completion signals of SHA engines and cipher engines. The Figure 2 below illustrates the state diagram of the machine.
 
-![fsm](image/README/FSMDiagramRNG.png)
+<div align="center">
+<img src="image/README/FSMDiagramRNG.png" alt="fms">
+</div>
 
-<p align="center">Figure 2. FSM Diagram</p>
+<p align="center">Figure 2. FSM Diagram.</p>
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/FSM.scala`)
   - `io.add_data: Bool` / `io.generate_data: Bool` - host commands to insert entropy or request output.
@@ -177,16 +179,16 @@ Thin integration wrapper instantiating `FSM` plus `Datapath` and exposing the si
 Alternative chiper module for generator core. Module implementation is based on [ChaCha by  Daniel J. Bernstein](https://cr.yp.to/chacha/chacha-20080128.pdf).
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/ChaCha.scala`)
-  - `io.in_start: Bool` - start pulse, telling core to capture `in_key`, `in_nonce`, and `in_counter` and begin computing.
-  - `io.in_key: UInst(256.W)` - 256‑bit ChaCha key.
+  - `io.start: Bool` - start pulse, telling core to capture `in_key`, `in_nonce`, and `in_counter` and begin computing.
+  - `io.in_key: UInt(256.W)` - 256‑bit ChaCha key.
   - `io.in_nonce: UInt(64.W)` - 64‑bit nonce.
   - `io.in_counter: UInt(64.W)` - 64‑bit block counter.
-  - `io.out_Decoding_key: UInt(521.W))` - The 512‑bit ChaCha keystream block
-  - `io.out_ready: Bool` - Done or valid flag
+  - `io.out: UInt(521.W)` - The 512‑bit ChaCha keystream block
+  - `io.done: Bool` - Done or valid flag
 
 #### 2.3.10 Salsa20 Module
 
-Alternative chiper module for generator core. Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
+Alternative cipher module for generator core. Salsa20 is also proposed by  Daniel J. Bernstein. It is an older version of Chacha.
 
 - IO (file: `Agile-HW-Design-RNG/src/main/scala/Salsa20.scala`)
   - Same interface as `ChaCha` (`in_start/in_key/in_nonce/in_counter/out_Decoding_key/out_ready`)
@@ -214,17 +216,17 @@ Alternative chiper module for generator core. Salsa20 is also proposed by  Danie
 
 ### 2.5 Support Code
 
-* **Emit** `(src/main/scala/Emit.scala)` - SBT entry points to emit SystemVerilog:
-  * **AES256Emit**: Emmitting SystemVerilog for AES256 module
-  * **SHAd256Emit**: Emmitting SystemVerilog for SHA256 module
-  * **SHA256Emit**: Emmitting SystemVerilog for SHAd256 module
-  * **PoolsEmit**:  Emmitting SystemVerilog for Pools module
-  * **ChaChaEmit**:  Emmitting SystemVerilog for ChaCha module
-  * **Salsa20Emit**:  Emmitting SystemVerilog for Salsa20 module
-  * **FSMEmit**:  Emmitting SystemVerilog for FSM module
-  * **DatapathEmit**:  Emmitting SystemVerilog for Datapath module
-  * **SHAd256_MultiEmit**:  Emmitting SystemVerilog for SHAd256_Multi module
-  * **TopEmit**:  Emmitting SystemVerilog for Top module
+* **Emit** `(Agile-HW-Design-RNG/src/main/scala/Emit.scala)` - SBT entry points to emit SystemVerilog:
+  * **AES256Emit**: Emitting SystemVerilog for AES256 module
+  * **SHA256Emit**: Emitting SystemVerilog for SHA256 module
+  * **SHAd256Emit**: Emitting SystemVerilog for SHAd256 module
+  * **PoolsEmit**:  Emitting SystemVerilog for Pools module
+  * **ChaChaEmit**:  Emitting SystemVerilog for ChaCha module
+  * **Salsa20Emit**:  Emitting SystemVerilog for Salsa20 module
+  * **FSMEmit**:  Emitting SystemVerilog for FSM module
+  * **DatapathEmit**:  Emitting SystemVerilog for Datapath module
+  * **SHAd256_MultiEmit**:  Emitting SystemVerilog for SHAd256_Multi module
+  * **FortunaTopEmit**:  Emitting SystemVerilog for Fortuna Top module
 
 ### 2.6 Build & Test
 
@@ -244,26 +246,42 @@ Alternative chiper module for generator core. Salsa20 is also proposed by  Danie
   - `sbt "runMain SHAd256_MultiEmit"` → emits SV for SHAd256 Multi into `generated/`.
   - `sbt "runMain ChaChaEmit"` → emits SV for ChaCha into `generated/`.
   - `sbt "runMain Salsa20Emit"` → emits SV for Salsa20 into `generated/`.
-  - `sbt "runMain TopEmit"` → emits SV for Top Module into `generated/`.
+  - `sbt "runMain FortunaTopEmit"` → emits SV for FortunaTop Module into `generated/`.
 
 ## 3. FPGA Implementation
 
-### 3.1 Connections Diagram
+The design was implemented on a Nexys A7 FPGA development board. The SystemVerilog files used for the implementation are located under `Agile-HW-Design-RNG/fpga` folder. 
 
-![xdc](image/README/fpgapin.png)
+### 3.1 Connection Diagram
 
-<p align="center">Figure 3. Connection Diagram</p>
+In this project, switches are used to provide entropy inputs, and LEDs are used to display the generated random numbers. Some buttons are assigned to trigger the collection of entropy and to start the generator process. Additional LEDs serve as indicators for the valid and busy signals.
+<div align="center">
+<img src="image/README/fpgapin.png" alt="fpga_pin">
+</div>
+
+<p align="center">Figure 3. Connection Diagram.</p>
 
 ### 3.2 Resource Utilization
 
-![util](image/README/report_utilization.png)
+The design uses about 41% of the available slice LUTs and 13% of slice registers of Nexys A7 FPGA. Figure 4 illustrates details of the resource utilization for the design.
 
-<p align="center">Figure 4. Resource Utilization</p>
+<div align="center">
+<img src="image/README/report_utilization.png" alt="util">
+</div>
+
+<p align="center">Figure 4. Resource Utilization.</p>
 
 ### 3.3 Timing Report
 
-![timing](image/README/report_timing.png)
+Figure 5 reports the critical clock paths inside the design. Each path has a total delay around 52-53 ns and satisfies the requirement.
+<div align="center">
+<img src="image/README/report_timing.png" alt="timing">
+</div>
 
-<p align="center">Figure 5. Timing Report</p>
+<p align="center">Figure 5. Timing Report.</p>
 
-### 3.4 Circuit Diagram
+### 3.4 Video Demo
+
+The implementation demo can be seen in the Video 1 below. The FPGA generates random numbers and displays them on the LEDs when the data-generation button is pressed.
+![demo](image/README/Demo.gif)
+<p align="center">Video 1. FPGA Implementation Demo.</p>
