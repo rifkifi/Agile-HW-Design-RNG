@@ -39,6 +39,8 @@ class FortunaTop(val debug: Boolean) extends Module{
 
   Datapath.io.updateStoredSeed := FSM.io.updateStoredSeed
   Datapath.io.useStoredSeed := FSM.io.useStoredSeed
+  Datapath.io.updatePoolSeed := FSM.io.updatePoolSeed
+  Datapath.io.displayData := FSM.io.displayData
 
   FSM.io.Pools_notEnoughDataFlag := Datapath.io.Pools_notEnoughDataFlag
 }

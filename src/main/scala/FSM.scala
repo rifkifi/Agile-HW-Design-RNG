@@ -25,22 +25,31 @@ class FSM extends Module{
 
     val useStoredSeed = Output(Bool())
     val updateStoredSeed = Output(Bool())
+    val updatePoolSeed = Output(Bool())
+
+    val displayData = Output(Bool())
+
     val Pools_notEnoughDataFlag = Input(Bool())
   })
 
   io.busy := false.B
   io.useStoredSeed := true.B
   io.updateStoredSeed := false.B
+  io.updatePoolSeed := false.B
   io.SHAd_a_en := false.B
   io.SHAd_b_en := false.B
   io.Cipher_en := false.B
   io.Pools_readData := false.B
   io.Pools_writeData := false.B
+  io.displayData := true.B
 
-  val idle :: addDataToPool :: generateData :: generateKey :: Nil = Enum(4)
+  val idle :: addDataToPool :: generateData :: generateKey :: updateKey :: Nil = Enum(5)
 
   val state = RegInit(idle)
   val cnt = RegInit(0.U(8.W))
+
+  val i = RegInit(0.U(1.W))
+  val cipherFinished = RegInit(false.B)
 
   io.valid_data := false.B
 
@@ -56,7 +65,7 @@ class FSM extends Module{
         io.busy := true.B
         io.valid_data := false.B
         when(io.Pools_notEnoughDataFlag){
-          state := generateData
+          state := updateKey
           io.Cipher_en := true.B
         }.otherwise{
           state := generateKey
@@ -76,12 +85,12 @@ class FSM extends Module{
     is(generateData){
       io.busy := true.B
       when(io.Cipher_done){
+        when(cnt === 127.U){
+          io.updateStoredSeed := true.B
+        }
         state := idle
         io.valid_data := true.B
         cnt := cnt + 1.U
-      }
-      when(cnt === 127.U){
-        io.updateStoredSeed := true.B
       }
     }
 
@@ -91,6 +100,20 @@ class FSM extends Module{
         io.useStoredSeed := false.B
         io.Pools_readData := true.B
         state := generateData
+      }
+    }
+
+    is(updateKey){
+      io.displayData := false.B
+      io.busy := true.B
+      cipherFinished := io.Cipher_done
+      when(cipherFinished){
+        io.updatePoolSeed := true.B
+        i := !i
+        io.Cipher_en := true.B
+        when(i === 1.U){
+          state := generateData
+        }
       }
     }
   }

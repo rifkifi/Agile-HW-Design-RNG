@@ -39,6 +39,9 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
 
     val useStoredSeed = Input(Bool())
     val updateStoredSeed = Input(Bool())
+    val updatePoolSeed = Input(Bool())
+
+    val displayData = Input(Bool())
 
     val out = Output(UInt(outWidth.W))
 
@@ -60,6 +63,7 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
 
   val storedSeed = RegInit(123456789.U(256.W))
   val poolSeed = RegInit(0.U(256.W))
+  val nextpoolSeed = RegInit(0.U(256.W))
 
   val cnt = RegInit(0.U(128.W))
 
@@ -88,6 +92,7 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
     Cat(msg, msgLenBits.pad(512)),
   )
 
+
   SHAd256_b.io.shaBlocks := shaBlocks
   SHAd256_b.io.nbMsgBlocks := nbMsgBlocks.asUInt
   SHAd256_b.io.start := io.SHAd_b_en
@@ -101,8 +106,17 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
   val state = Mux(io.useStoredSeed, storedSeed, poolSeed)
 
   when(io.updateStoredSeed){
-    storedSeed := Cat(storedSeed(255,128), CipherIO.out)
+    storedSeed := nextpoolSeed
   }
+
+  when(io.updatePoolSeed){
+    nextpoolSeed := Cat(nextpoolSeed, CipherIO.out(127,0))
+  }
+
+  when(CipherIO.done && io.displayData){
+    poolSeed := nextpoolSeed
+  }
+
 
   CipherIO.start := io.Cipher_en
   CipherIO.in_key := state
@@ -111,21 +125,9 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
   CipherIO.in_nonce := 0.U
 
   io.Cipher_done := CipherIO.done
-  io.out := CipherIO.out
+  io.out := Mux(io.displayData, CipherIO.out, 0.U)
 
   when(CipherIO.done){
     cnt := cnt + 1.U
   }
-
-//  AES.io.in_key := state
-//  AES.io.in_data := cnt
-//  AES.io.start := io.Cipher_en
-//
-//  io.Cipher_done := AES.io.done
-//
-//  when(AES.io.done){
-//    cnt := cnt + 1.U
-//  }
-//
-//  io.out := AES.io.out
 }

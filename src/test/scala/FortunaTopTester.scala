@@ -14,7 +14,7 @@ class FortunaTopTester extends AnyFlatSpec with ChiselScalatestTester {
       c.clock.step(1)
       c.io.generate_data.poke(false.B)
 
-      var maxcycles = 20
+      var maxcycles = 50
       var cyclesCounter = maxcycles
 
       // Wait until Generator done
@@ -53,7 +53,6 @@ class FortunaTopTester extends AnyFlatSpec with ChiselScalatestTester {
       c.io.in_random_data.poke(255.U)
       c.clock.step(1)
       c.io.add_data.poke(false.B)
-
 
       while (c.io.busy.peek().litToBoolean) {
         c.clock.step(1)
