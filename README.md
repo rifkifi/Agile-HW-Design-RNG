@@ -41,12 +41,12 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 - [X] build Datapath
 - [X] build FSM Module
 - [X] build Fortuna Top Module
+- [X] Pin Connections(xdc)
+- [X] FPGA Implementation
+- [X] Utilisation report
+- [X] keystream size matrix achieved
 - [ ] Introduce Cipher Selector Logic
 - [ ] Performance matrix achieved
-- [ ] keystream size matrix achieved
-- [ ] Pin Connections(xdc)
-- [ ] FPGA Implementation
-- [ ] Utilisation report
 
 #### Future Implementations
 
@@ -152,7 +152,7 @@ Ties together the SHA cores, pools, stored seed register, and AES generator so e
 
 This FSM coordinates when the system generates keys, generates output data, or adds entropy to a pool, depending on request signals and completion signals of SHA engines and cipher engines. The Figure 2 below illustrates the state diagram of the machine.
 
-![1762873081647](image/README/FSMDiagramRNG.png)
+![fsm](image/README/FSMDiagramRNG.png)
 
 <p align="center">Figure 2. FSM Diagram</p>
 
@@ -248,8 +248,22 @@ Alternative chiper module for generator core. Salsa20 is also proposed by  Danie
 
 ## 3. FPGA Implementation
 
-### 3.1 XDC Connections
+### 3.1 Connections Diagram
+
+![xdc](image/README/fpgapin.png)
+
+<p align="center">Figure 3. Connection Diagram</p>
 
 ### 3.2 Resource Utilization
 
-### 3.3 Circuit Diagram
+![util](image/README/report_utilization.png)
+
+<p align="center">Figure 4. Resource Utilization</p>
+
+### 3.3 Timing Report
+
+![timing](image/README/report_timing.png)
+
+<p align="center">Figure 5. Timing Report</p>
+
+### 3.4 Circuit Diagram
