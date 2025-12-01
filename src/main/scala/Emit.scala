@@ -37,6 +37,3 @@ object ChaChaEmit extends App {
 object Salsa20Emit extends App {
   emitVerilog(new Salsa20, Array("--target-dir", "generated"))
 }
-object FortunaTopEmit extends App {
-  emitVerilog(new FortunaTop(false), Array("--target-dir", "generated"))
-}
