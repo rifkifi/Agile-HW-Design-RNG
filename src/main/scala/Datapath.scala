@@ -58,9 +58,6 @@ class Datapath(cipher: CipherType.Type, val debug: Boolean) extends Module{
     case CipherType.CHACHA  => Module(new ChaCha()).io
   }
 
-
-  //val AES = Module(new AES256())
-
   val storedSeed = RegInit(123456789.U(256.W))
   val poolSeed = RegInit(0.U(256.W))
   val nextpoolSeed = RegInit(0.U(256.W))
