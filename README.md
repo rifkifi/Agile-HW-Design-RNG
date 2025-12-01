@@ -39,7 +39,8 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 - [X] Build ChaCha (Bernstirn) Module
 - [X] build and introduce Verilog Emitter
 - [X] build Datapath
-- [X] build FSM topModule
+- [X] build FSM Module
+- [X] build Fortuna Top Module
 - [ ] Introduce Cipher Selector Logic
 - [ ] Performance matrix achieved
 - [ ] keystream size matrix achieved
@@ -68,13 +69,17 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
   - `Pools.scala` - Simple seeding pools component for RNG reseeding logic.
   - `Datapath.scala` - Datapath for fortuna that orchestrates how entropy move through from Seed Generator to Generator Core.
   - `FSM.scala` - Fortuna Control State machine.
-  - `Top.scala` - Top-level wrapper wiring the FSM with the datapath and exposing the RNG interface.
+  - `FortunaTop.scala` - Top-level wrapper wiring the FSM with the datapath and exposing the RNG interface.
 - **Tests**: `Agile-HW-Design-RNG/src/test/scala/`
-  - `AES256Test.scala` - AES unit test with PKCS#7 padding and known vector.
-  - `CoSimulationTest.scala` - Co‑simulation against Java golden models (AES, SHA256, SHAd256).
-  - `SHA256Tester.scala` - Single‑block SHA‑256 “abc” known‑answer test.
-  - `SHAd256Tester.scala` - Double SHA‑256 “abc” known‑answer test.
+  - `AES256Tester.scala` - AES-256 unit test that encrypts “abc” against a known vector.
+  - `SHA256Tester.scala` - Single-block SHA-256 “abc” known-answer test.
+  - `SHAd256Tester.scala` - Double SHA-256 “abc” known-answer test.
   - `PoolsTester.scala` - Pools module sanity test.
+  - `CoSimulationTest.scala` - Co-simulation against Java golden models (AES, SHA256, SHAd256).
+  - `DatapathTester.scala` - Datapath AES counter variation test.
+  - `FortunaTopTester.scala` - End-to-end Fortuna top-level test.
+  - `ChaChaTester.scala` - ChaCha vector test.
+  - `Salsa20Tester.scala` - Salsa20 vector test.
 
 ### 2.3 Hardware Modules Descriptions
 
@@ -157,7 +162,7 @@ This FSM coordinates when the system generates keys, generates output data, or a
   - `io.SHAd_a_en`, `io.SHAd_b_en`, `io.Pools_writeData`, `io.Pools_readData`, `io.Cipher_en`, `io.useStoredSeed`, `io.updateStoredSeed`: Bool control signals driven into the datapath.
   - `io.SHAd_a_done`, `io.SHAd_b_done`, `io.Cipher_done`, `io.Pools_notEnoughDataFlag`: Bool feedbacks consumed by the FSM to sequence operations.
 
-#### 2.3.8 Top Module
+#### 2.3.8 Fortuna Top Module
 
 Thin integration wrapper instantiating `FSM` plus `Datapath` and exposing the simplified RNG interface to the outside world.
 
@@ -188,27 +193,24 @@ Alternative chiper module for generator core. Salsa20 is also proposed by  Danie
 
 ### 2.4 Testing
 
-* **AES256Test** `(src/test/scala/AES256Test.scala)`
-  AES‑256 encryption of **"abc"** against a known expected ciphertext.
+* **AES256Tester** `(src/test/scala/AES256Tester.scala)`
+  Encrypts **"abc"** using the AES-256 core and compares against the expected ciphertext.
 * **SHA256Tester** `(src/test/scala/SHA256Tester.scala)`
-  hashes a single padded **"abc"** block and checks against the standard SHA‑256 known answer.
+  Hashes a padded **"abc"** block and checks the standard SHA-256 known answer.
 * **SHAd256Tester** `(src/test/scala/SHAd256Tester.scala)`
-  hashes padded **"abc"** and compares against the known double‑SHA‑256 digest.
+  Runs the double-hash engine on **"abc"** and validates the resulting digest.
 * **PoolsTester** `(src/test/scala/PoolsTester.scala)`
-  sanity test for pool writes, reseed behavior, and **outPoolsCount** for different reseed counter values.
+  Exercises pool writes, reseed masking, and `outPoolsCount` behavior for different counters.
 * **CoSimulationTest** `(src/test/scala/CoSimulationTest.scala)`
-  co-simulation against Java built-in library for AES256 and SHA256:
-  * AES-256 core vs **Java Chiper AES256** for multiple plaintexts.
-  * SHA-256 and SHAd256 cores vs Java **MessageDigest("SHA-256")** (single and double hash).
-    Includes helper traits and classes (AES256Hardware, AES256GoldenModel, SHA256Hardware, SHA256GoldenModel, SHAd256Hardware, SHAd256GoldenModel, SHA256Helper).
+  Co-simulates AES256, SHA256, and SHAd256 against Java `Cipher`/`MessageDigest` references using shared golden models.
 * **DatapathTester** `(src/test/scala/DatapathTester.scala)`
-  It runs the datapath’s AES path by itself and checks that the stored-seed AES counter gives different outputs each time it’s triggered.
-* **TopTester** `(src/test/scala/TopTester.scala)`
-  It drives the Top module’s public interface, toggling generate requests, watching busy, and reading the RNG output, to make sure the combined FSM/datapath returns a new keystream block each time.
-* **test_ChaCha** `(src/test/scala/test_ChaCha.scala)`
-  runs the **ChaCha** core on selected test vectors and checks the 512-bit **out_Decoding_key** against known reference outputs.
-* **test_Salsa20** `(src/test/scala/test_Salsa20.scala)`
-  similarly validates the **Salsa20** core keystream against known vectors.
+  Drives the datapath AES path standalone to ensure counter outputs differ when reusing the stored seed.
+* **FortunaTopTester** `(src/test/scala/FortunaTopTester.scala)`
+  Stimulates the Fortuna top interface (generate pulses, busy tracking, RNG readout) to confirm the integrated FSM/datapath emits fresh blocks each request.
+* **ChaChaTester** `(src/test/scala/ChaChaTester.scala)`
+  Runs the ChaCha core on known vectors and checks the 512-bit `out_Decoding_key`.
+* **Salsa20Tester** `(src/test/scala/Salsa20Tester.scala)`
+  Validates the Salsa20 keystream against reference outputs using the same interface as ChaCha.
 
 ### 2.5 Support Code
 
