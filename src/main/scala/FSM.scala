@@ -99,7 +99,8 @@ class FSM extends Module{
       when(io.SHAd_b_done){
         io.useStoredSeed := false.B
         io.Pools_readData := true.B
-        state := generateData
+        state := updateKey
+        io.Cipher_en := true.B
       }
     }
 

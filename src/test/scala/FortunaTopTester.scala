@@ -58,6 +58,21 @@ class FortunaTopTester extends AnyFlatSpec with ChiselScalatestTester {
         c.clock.step(1)
       }
       c.clock.step(1)
+
+
+      c.io.generate_data.poke(true.B)
+      c.clock.step(1)
+      c.io.generate_data.poke(false.B)
+
+      var cyclesCounter3 = maxcycles
+
+      while (c.io.busy.peek().litToBoolean  && cyclesCounter3 > 0) {
+        c.clock.step(1)
+        cyclesCounter3 = cyclesCounter3-1
+      }
+
+      val out3 = c.io.out_rng_data.peek().litValue
+      println(s"RNG Data Output 3: 0x${out2.toString(16)}")
     }
   }
 }
