@@ -58,7 +58,6 @@ The **Generator core** is the heart of Fortuna, it will produce the random numbe
 
 #### Future Implementations
 
-- [ ] Security Matrix
 - [ ] Twofish cipher Module
 - [ ] Serpent cipher Module
 - [ ] Camellia cipher Module
