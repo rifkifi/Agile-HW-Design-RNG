@@ -12,6 +12,7 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
 
   it should "generate the same output" in {
     test(new AES256()) { dut =>
+      println("Testing AES256 functionality")
       val plainTexts =
         Seq("abc", "hello world!", "Chisel AES256", "Agile HW Design")
       val keyHex =
@@ -25,18 +26,20 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
         val ptHex = block.toString(16)
         val hardwareResult = hardware.result(keyHex, block)
         val modelResult = goldenModel.result(keyHex, ptHex)
+        println(s"PT=$plainText, HW=$hardwareResult, Model=$modelResult")
         assert(
           hardwareResult == modelResult,
           s"Mismatch for plaintext '$plainText': HW=$hardwareResult, Model=$modelResult"
         )
       }
-      println("All tests passed!")
+      println("All tests passed!\n\n")
     }
   }
 
   behavior of "SHA256 co-simulation with java built-in SHA-256 implementation"
   it should "generate the same hash output" in {
     test(new SHA256()) { dut =>
+      println("Testing SHA256 functionality")
       val messages =
         Seq("abc", "hello world!", "Chisel SHA256", "Agile HW Design")
       val goldenModel = new SHA256GoldenModel()
@@ -45,18 +48,20 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
         println(s"Testing message: '$message'")
         val hardwareHash = hardware.hash(message)
         val modelHash = goldenModel.hash(message)
+        println(s"PT=$message, HW=$hardwareHash, Model=$modelHash")
         assert(
           hardwareHash == modelHash,
           s"Mismatch for message '$message': HW=$hardwareHash, Model=$modelHash"
         )
       }
-      println("All tests passed!")
+      println("All tests passed!\n\n")
     }
   }
 
   behavior of "SHAd256 co-simulation with java built-in SHA-256 implementation"
   it should "generate the same hash output" in {
-    test(new SHAd256()) { dut =>
+    test(new SHAd256(true)) { dut =>
+      println("Testing SHAd256 functionality")
       val messages =
         Seq("abc", "hello world!", "Chisel SHA256", "Agile HW Design")
       val goldenModel = new SHAd256GoldenModel()
@@ -65,12 +70,13 @@ class CoSimulationTest extends AnyFlatSpec with ChiselScalatestTester {
         println(s"Testing message: '$message'")
         val hardwareHash = hardware.hash(message)
         val modelHash = goldenModel.hash(message)
+        println(s"PT=$message, HW=$hardwareHash, Model=$modelHash")
         assert(
           hardwareHash == modelHash,
           s"Mismatch for message '$message': HW=$hardwareHash, Model=$modelHash"
         )
       }
-      println("All tests passed!")
+      println("All tests passed!\n\n")
     }
   }
 }
@@ -83,21 +89,21 @@ trait AES256Impl[T] {
 // AES256 Hardware Implementation
 class AES256Hardware(dut: AES256) extends AES256Impl[BigInt] {
   def result(key32: String, block16: BigInt): String = {
-    println(s"Running hardware AES256 with block=${block16.toString(16)}")
+    // println(s"Running hardware AES256 with block=${block16.toString(16)}")
     // DUT Processing
-    while (!dut.io.ready.peek().litToBoolean) { dut.clock.step(1) }
-    dut.io.start.poke(true.B)
+
     dut.io.in_key.poke(
       s"h${key32}".U(
         256.W
       )
     )
     dut.io.in_data.poke(block16.U(128.W))
+    dut.io.start.poke(true.B)
     dut.clock.step()
+    dut.io.start.poke(false.B)
     while (!dut.io.done.peek().litToBoolean) { dut.clock.step(1) }
     val res = dut.io.out.peek().litValue.toString(16)
     dut.clock.step()
-    dut.io.start.poke(false.B)
     res
   }
 }

@@ -1,7 +1,7 @@
 import chisel3._
 import chisel3.util._
 
-class SHAd256 extends Module {
+class SHAd256(val debug: Boolean) extends Module {
   val io = IO(new Bundle {
     val in    = Input(UInt(512.W))
     val start = Input(Bool())
@@ -48,7 +48,7 @@ class SHAd256 extends Module {
   val state = RegInit(sIdle)
 
   io.done := false.B
-  io.out := 0.U
+  io.out := Cat(H(0), H(1), H(2), H(3), H(4), H(5), H(6), H(7))
 
   switch(state) {
     is(sIdle) {
@@ -126,7 +126,10 @@ class SHAd256 extends Module {
       a := a2; b := b2; c := c2; d := d2
       e := e2; f := f2; g := g2; h := h2
 
-      printf(p"round=$round a=${Hexadecimal(a)} b=${Hexadecimal(b)} c=${Hexadecimal(c)} d=${Hexadecimal(d)} e=${Hexadecimal(e)} f=${Hexadecimal(f)} g=${Hexadecimal(g)} h=${Hexadecimal(h)}\n")
+      // Debug code for simulation
+      if (debug) {
+        printf(p"round=$round a=${Hexadecimal(a)} b=${Hexadecimal(b)} c=${Hexadecimal(c)} d=${Hexadecimal(d)} e=${Hexadecimal(e)} f=${Hexadecimal(f)} g=${Hexadecimal(g)} h=${Hexadecimal(h)}\n")
+      }
 
       when(round >= 62.U) {
         state := sFinalize
@@ -169,7 +172,6 @@ class SHAd256 extends Module {
         Wi := W(round)
       }.otherwise {
         val s0 = (W(round - 15.U).rotateRight(7)) ^ (W(round - 15.U).rotateRight(18)) ^ (W(round - 15.U) >> 3).asUInt
-        printf(p"round=${round}  W(round-15)=${Binary(W(round - 15.U))}\n")
         val s1 = (W(round - 2.U).rotateRight(17)) ^ (W(round - 2.U).rotateRight(19)) ^ (W(round - 2.U) >> 10).asUInt
         val newW = W(round - 16.U) + s0 + W(round - 7.U) + s1
         Wi := newW
@@ -226,7 +228,10 @@ class SHAd256 extends Module {
       a := a2; b := b2; c := c2; d := d2
       e := e2; f := f2; g := g2; h := h2
 
-      printf(p"round=$round a=${Hexadecimal(a)} b=${Hexadecimal(b)} c=${Hexadecimal(c)} d=${Hexadecimal(d)} e=${Hexadecimal(e)} f=${Hexadecimal(f)} g=${Hexadecimal(g)} h=${Hexadecimal(h)}\n")
+      // Debug code for simulation
+      if (debug) {
+        printf(p"round=$round a=${Hexadecimal(a)} b=${Hexadecimal(b)} c=${Hexadecimal(c)} d=${Hexadecimal(d)} e=${Hexadecimal(e)} f=${Hexadecimal(f)} g=${Hexadecimal(g)} h=${Hexadecimal(h)}\n")
+      }
 
       when(round >= 62.U) {
         state := sSecondFinalize
@@ -243,7 +248,6 @@ class SHAd256 extends Module {
 
     is(sDone) {
       io.done := true.B
-      io.out := Cat(H(0), H(1), H(2), H(3), H(4), H(5), H(6), H(7))
       when(!io.start) { state := sIdle }
     }
   }

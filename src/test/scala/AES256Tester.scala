@@ -2,7 +2,7 @@ import chisel3._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 
-class AES256Test extends AnyFlatSpec with ChiselScalatestTester {
+class AES256Tester extends AnyFlatSpec with ChiselScalatestTester {
   behavior of "AES256" 
   
   it should "paddes and hashes input data correctly" in {
@@ -13,7 +13,6 @@ class AES256Test extends AnyFlatSpec with ChiselScalatestTester {
         block == BigInt("6162630d0d0d0d0d0d0d0d0d0d0d0d0d", 16),
         "Padded message does not match expected value"
       )
-      while (!dut.io.ready.peek().litToBoolean) { dut.clock.step(1) }
       dut.io.start.poke(true.B)
       dut.io.in_key.poke(
         "h603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4".U(

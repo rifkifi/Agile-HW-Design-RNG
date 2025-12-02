@@ -7,9 +7,10 @@ import org.scalatest.flatspec.AnyFlatSpec
 class DatapathTester extends AnyFlatSpec with ChiselScalatestTester {
 
   "AES part of Datapath" should "produce output and change with counter" in {
-    test(new Datapath()).withAnnotations(Seq(WriteVcdAnnotation)) { c =>
+    test(new Datapath(CipherType.AES, true)).withAnnotations(Seq(WriteVcdAnnotation)) { c =>
       // Use the storedSeed for AES key
       c.io.updateStoredSeed.poke(true.B)
+      c.io.displayData.poke(true.B)
       c.io.Cipher_en.poke(false.B)
 
       // Reset step
